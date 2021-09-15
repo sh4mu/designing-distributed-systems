@@ -34,10 +34,34 @@ $ sudo openssl req -newkey rsa:4096 -nodes -sha256 -keyout \
  ./certs/registry.key -x509 -days 365 -out ./certs/registry.crt
 $ ls -lrt cert/
 
+
 3. Deploy private registry as deployment via yaml file
 
+Create volume folder
+`mkdir ~/docker-repo`
 
+Start the registry Deployment
+`kubectl create -f private-registry.yaml`
 
+Check all is up and running
+`kubectl get deployments private-repository-k8s`
+`kubectl get pods | grep -i private-repo`
+
+Update the certificates in the master and node hosts
+`sudo cp /opt/certs/registry.crt /usr/local/share/ca-certificates/`
+`sudo update-ca-certificates`
+`sudo systemctl restart docker`
+
+4. Expose registry deployment as a nodeport service type
+
+Expose registry deployment as a nodeport service type
+`kubectl create -f private-registry-svc.yaml`
+
+5. Test and Use private docker registry in k8s
+
+$ sudo docker build -t redis-pub .
+$ sudo docker tag redis-pub:latest k8s-master:31320/redis-pub:1.0
+$ sudo docker push k8s-master:31320/redis-pub:1.0
 ### Docker registry
 
 `docker run -d -p 5000:5000 --restart=always --name registry registry:2`
