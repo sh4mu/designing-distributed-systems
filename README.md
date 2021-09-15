@@ -15,10 +15,17 @@ https://devopscube.com/kubernetes-cluster-vagrant/
 * Install kubernetes-client locally
 
 
-# Training
-## Ambassador
+# K8s setup
 
-### Check DNS k8s service health
+## Create docker local registry
+
+`docker run -d -p 5000:5000 --restart=always --name registry registry:2`
+
+To pull an image
+`docker tag ubuntu:16.04 localhost:5000/my-ubuntu`
+`docker push localhost:5000/my-ubuntu`
+
+## Check DNS k8s service health
 Is DNS service up?
 ```
 vagrant@master-node:~$ kubectl get svc --namespace=kube-system
@@ -32,18 +39,4 @@ Are there DNS service errors?
 Are DNS pods running?
 `kubectl get pods --namespace=kube-system -l k8s-app=kube-dns`
 
-### Check redis DNS entries
 
-From https://kubernetes.io/docs/tasks/administer-cluster/dns-debugging-resolution/
-
-Add dnsutils pod
-`kubectl apply -f https://k8s.io/examples/admin/dns/dnsutils.yaml`
-
-Check that DNS is working properly in the k8s environment
-`kubectl exec -i -t dnsutils -- nslookup kubernetes.default`
-
-Query the redis service entry
-`kubectl exec -i -t dnsutils -- nslookup redis.default.svc.cluster.local`
-
-Query a redis pod entry, using the pod IP
-`kubectl exec -i -t dnsutils -- nslookup 192-168-158-3.default.pod.cluster.local`
