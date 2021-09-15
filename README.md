@@ -17,13 +17,36 @@ https://devopscube.com/kubernetes-cluster-vagrant/
 
 # K8s setup
 
-## Create docker local registry
+## Create k8s registry
+
+1. Configure NFS share between master and worker nodes
+
+This should be done in a real k8s cluster, since pod persistent volumes should be mounted from an NFS server
+
+2. Generate self-signed certificates for private registry
+
+Go to master, node01 and node02
+$ sudo mkdir /opt/certs /opt/registry
+
+Create key and copy them to all k8s cluster nodes
+$ cd /opt 
+$ sudo openssl req -newkey rsa:4096 -nodes -sha256 -keyout \
+ ./certs/registry.key -x509 -days 365 -out ./certs/registry.crt
+$ ls -lrt cert/
+
+3. Deploy private registry as deployment via yaml file
+
+
+
+### Docker registry
 
 `docker run -d -p 5000:5000 --restart=always --name registry registry:2`
 
 To pull an image
 `docker tag ubuntu:16.04 localhost:5000/my-ubuntu`
 `docker push localhost:5000/my-ubuntu`
+
+
 
 ## Check DNS k8s service health
 Is DNS service up?
