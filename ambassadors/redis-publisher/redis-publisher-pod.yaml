@@ -5,4 +5,6 @@ metadata:
 spec:
   containers:
   - name: redis-publisher
-    image: redis-publisher
+    image: master-node:31320/redis-pub:1.0
+  imagePullSecrets:
+  - name: registrypullsecret

@@ -23,54 +23,82 @@ https://devopscube.com/kubernetes-cluster-vagrant/
 
 This should be done in a real k8s cluster, since pod persistent volumes should be mounted from an NFS server
 
-2. Generate self-signed certificates for private registry
+2. Autentication requirements
+
+* Generate self-signed certificates for private registry
 
 Go to master, node01 and node02
-$ sudo mkdir /opt/certs /opt/registry
+`sudo mkdir -p /opt/certs /opt/registry/data /opt/registry/auth`
 
 Create key and copy them to all k8s cluster nodes
-$ cd /opt 
-$ sudo openssl req -newkey rsa:4096 -nodes -sha256 -keyout \
+```cd /opt
+sudo openssl req -newkey rsa:4096 -nodes -sha256 -keyout \
  ./certs/registry.key -x509 -days 365 -out ./certs/registry.crt
-$ ls -lrt cert/
+ls -lrt cert/
+```
 
+Add the certificates to the OS ca
+```sudo cp /opt/certs/registry.crt /usr/local/share/ca-certificates/
+sudo update-ca-certificates
+sudo systemctl restart docker
+```
+
+* Add user/password for docker login
+
+htpasswd -cB vi /opt/registry/auth/htpasswd admin
+(type password)
+
+* Copy the /opt folders to the node0x and repeat the update OS certificates step
 
 3. Deploy private registry as deployment via yaml file
 
-Create volume folder
-`mkdir ~/docker-repo`
-
-Start the registry Deployment
+Start the registry Deployment (mounting the (/opt created folders))
 `kubectl create -f private-registry.yaml`
 
 Check all is up and running
 `kubectl get deployments private-repository-k8s`
+
 `kubectl get pods | grep -i private-repo`
 
-Update the certificates in the master and node hosts
-`sudo cp /opt/certs/registry.crt /usr/local/share/ca-certificates/`
-`sudo update-ca-certificates`
-`sudo systemctl restart docker`
 
 4. Expose registry deployment as a nodeport service type
 
 Expose registry deployment as a nodeport service type
 `kubectl create -f private-registry-svc.yaml`
 
+```
+NAME                     TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)          AGE
+private-repository-k8s   NodePort    10.97.251.95   <none>        5000:31320/TCP   46s
+```
+
 5. Test and Use private docker registry in k8s
 
-$ sudo docker build -t redis-pub .
-$ sudo docker tag redis-pub:latest k8s-master:31320/redis-pub:1.0
-$ sudo docker push k8s-master:31320/redis-pub:1.0
-### Docker registry
+`sudo docker login -uadmin -ppassword master-node:31320`
 
-`docker run -d -p 5000:5000 --restart=always --name registry registry:2`
+6. Push docker image to private repo
 
-To pull an image
-`docker tag ubuntu:16.04 localhost:5000/my-ubuntu`
-`docker push localhost:5000/my-ubuntu`
+Build the docker from the master node and add it to the private registry
+`sudo docker build -t redis-pub .`
 
+`$ sudo docker tag redis-pub:latest master-node:31320/redis-pub:1.0`
 
+`$ sudo docker push master-node:31320/redis-pub:1.0`
+
+7. Create pod using the private registry
+
+* Create a secret (e.g. registrypullsecret) using the config.json
+
+`kubectl create secret docker-registry registrypullsecret --docker-server=master-node:31320 --docker-username=admin --docker-password=password`
+
+* Use private registry in the pod yaml
+
+```
+containers:
+  - name: redis-publisher
+    image: master-node:31320/redis-pub:1.0
+  imagePullSecrets:
+  - name: registrypullsecret
+```
 
 ## Check DNS k8s service health
 Is DNS service up?

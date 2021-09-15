@@ -21,14 +21,24 @@ spec:
           type: Directory
       - name: registry-vol
         hostPath:
-          path: /opt/registry
+          path: /opt/registry/data
+          type: Directory
+      - name: auth-vol
+        hostPath:
+          path: /opt/registry/auth
           type: Directory
 
       containers:
         - image: registry:2
           name: private-repository-k8s
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: IfNotPresent          
           env:
+          - name: REGISTRY_AUTH
+            value: "htpasswd"
+          - name: REGISTRY_AUTH_HTPASSWD_REALM
+            value: "Registry Realm"
+          - name: REGISTRY_AUTH_HTPASSWD_PATH
+            value: /auth/htpasswd
           - name: REGISTRY_HTTP_TLS_CERTIFICATE
             value: "/certs/registry.crt"
           - name: REGISTRY_HTTP_TLS_KEY
@@ -40,3 +50,5 @@ spec:
             mountPath: /certs
           - name: registry-vol
             mountPath: /var/lib/registry
+          - name: auth-vol
+            mountPath: /auth
