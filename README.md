@@ -17,6 +17,22 @@ https://devopscube.com/kubernetes-cluster-vagrant/
 
 # K8s setup
 
+## Setup master node dns nameserver
+
+This was required because when building a docker using the npm install, the https://registry.npmjs.org was not resolved
+
+Master node is ubuntu, hence
+
+```$ sudo nano /etc/netplan/01-netcfg.yaml
+network:
+  version: 2
+  ethernets:
+    eth0:
+      dhcp4: true
+      nameservers:
+        addresses: [8.8.8.8, 8.8.4.4]
+```
+
 ## Create k8s registry
 
 1. Configure NFS share between master and worker nodes
@@ -80,9 +96,9 @@ private-repository-k8s   NodePort    10.97.251.95   <none>        5000:31320/TCP
 Build the docker from the master node and add it to the private registry
 `sudo docker build -t redis-pub .`
 
-`$ sudo docker tag redis-pub:latest master-node:31320/redis-pub:1.0`
+`sudo docker tag redis-pub:latest master-node:31320/redis-pub:1.0`
 
-`$ sudo docker push master-node:31320/redis-pub:1.0`
+`sudo docker push master-node:31320/redis-pub:1.0`
 
 7. Create pod using the private registry
 
