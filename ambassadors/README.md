@@ -24,10 +24,8 @@ Query a redis pod entry, using the pod IP
 In the nodejs-app run:
 `npm init` 
 
-Optional... delete? `npm install express --save`
-
 Then create the nodejs docker container
-`docker build -t nodejs-app .`
+`docker build -t <image-name> .`
 
 ### Integrate nodejs with redis
 
