@@ -11,8 +11,9 @@ subscriber.on('connect', function() {
     console.log('Connected!');
 });
 
+subscriber.subscribe('my channel');
+
 subscriber.on('message', (channel, message) => {
     console.log(`Message "${message}" on channel "${channel}" arrived!`)
 });
 
-subscriber.subscribe('my channel');

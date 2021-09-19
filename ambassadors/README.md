@@ -53,8 +53,12 @@ Reading messages... (press Ctrl-C to quit)
 
 Start the pod or change replicas of the redis-publisher and check received messages.
 
-*Note:* The published messaged is sent to only one of the available redis-shards
+*Note:* The published messages is sent to only one of the available redis-shards
 
+### Create a subscriber app to listen to messages
+
+The subscriber.js connects and subscribes to the 'my channel' for message. However it only connects so a specific shard.
+Hence when publishing messages, these may not arrive the associated shard. If the do arrive, the message will be printed.
 
 
 
