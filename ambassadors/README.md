@@ -18,18 +18,51 @@ Query the redis service entry and the associated redis replicas
 Query a redis pod entry, using the pod IP
 `kubectl exec -i -t dnsutils -- nslookup 192-168-158-3.default.pod.cluster.local`
 
-## Nodejs redis publisher-consumer
+## Test redis ambassador with node publisher-consumer
 
-### Create nodejs container
-In the nodejs-app run:
+### Publish nodejs container
+In the Dockerfile folder run:
 `npm init` 
 
-Optional... delete? `npm install express --save`
-
 Then create the nodejs docker container
-`docker build -t nodejs-app .`
+`docker build -t <image-name> .`
 
-### Integrate nodejs with redis
+### Create a publish app to validate shard usage
+
+Create a publisher.js to connect to redis service and publish messages in 'my channel'
+```
+const publisher = redis.createClient({
+    host: 'redis',
+    port: 6379
+});
+
+publisher.publish('my channel', 'hi');
+```
+
+Create either a pod or a replica set using this container.
+
+Use the redis-cli in the redis shard pods to listen to published messages, e.g.
+```
+$ kubectl exec -it sharded-redis-2 -- redis-cli
+127.0.0.1:6379> psubscribe *
+Reading messages... (press Ctrl-C to quit)
+1) "psubscribe"
+2) "*"
+3) (integer) 1
+```
+
+Start the pod or change replicas of the redis-publisher and check received messages.
+
+*Note:* The published messages is sent to only one of the available redis-shards
+
+### Create a subscriber app to listen to messages
+
+The subscriber.js connects and subscribes to the 'my channel' for message. However it only connects so a specific shard.
+Hence when publishing messages, these may not arrive the associated shard. If the do arrive, the message will be printed.
+
+
+
+
 
 https://docs.redis.com/latest/rs/references/client_references/client_nodejs/
 
