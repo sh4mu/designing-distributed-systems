@@ -21,3 +21,5 @@ spec:
         ports:
         - containerPort: 6379
           name: redis
+      - name: redis-adapter
+        image: oliver006/redis_exporter

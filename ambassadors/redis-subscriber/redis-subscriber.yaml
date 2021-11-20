@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: redis-publisher
+  name: redis-subscriber
   labels:
     app: redis
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: redis-publisher    
+      app.kubernetes.io/name: redis-subscriber    
   template:
     metadata:
       labels:
         app: redis
-        app.kubernetes.io/name: redis-publisher
+        app.kubernetes.io/name: redis-subscriber
     spec:
       containers:
-      - name: redis-publisher
-        image: master-node:31320/redis-pub:latest
+      - name: redis-subscriber
+        image: master-node:31320/redis-sub:latest
       imagePullSecrets:
       - name: regcred
